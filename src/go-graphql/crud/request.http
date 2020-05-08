@@ -1,0 +1,7 @@
+// READ
+// Get quote lists
+GET http://localhost:8080/quote?query={list{quote,author}}
+
+###
+// Get a sinle quote by id, you can choose fields you want in return
+GET http://localhost:8080/quote?query={quote(id:1){quote,author,tags}}

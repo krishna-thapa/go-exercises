@@ -11,6 +11,9 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
+// Global variable that will be replaved by database
+var tutorials []Tutorial
+
 //define some struct’s that will represent a Tutorial, an Author, and a Comment:
 
 type Tutorial struct {
@@ -106,6 +109,29 @@ var tutorialType = graphql.NewObject(
 	},
 )
 
+// Simple mutation that will allow us to add new tutorials to our existing list of tutorials.
+var mutationType = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Mutation",
+	Fields: graphql.Fields {
+		"create": &graphql.Field {
+			Type: tutorialType,
+			Description: "Create a new Tutorial",
+			Args: graphql.FieldConfigArgument {
+				"title": &graphql.ArgumentConfig {
+					Type: graphql.NewNonNull(graphql.String),
+				},
+			},
+			Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+				tutorial := Tutorial {
+					Title: params.Args["title"].(string),
+				}
+				tutorials = append(tutorials, tutorial)
+				return tutorial, nil
+			},
+		},
+	},
+})
+
 func main() {
 
 	tutorials := populate()
@@ -146,7 +172,10 @@ func main() {
 	}
 
 	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: fields}
-	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
+	schemaConfig := graphql.SchemaConfig {
+		Query: graphql.NewObject(rootQuery),
+		Mutation: mutationType,
+	}
 	schema, err := graphql.NewSchema(schemaConfig)
 	if err != nil {
 		log.Fatalf("failed to create new schema, error: %v", err)
@@ -155,25 +184,25 @@ func main() {
 	// Query
 	/*
 	So within our query we have a special root object. Within this we then say that we want the list field on that object. On the list returned by list, we want to see the id, title, comments and the author.*/
-	// query := `
-	// 	{
-	// 		list {
-	// 			id
-	// 			title
-	// 			comments{
-	// 				body
-	// 			}
-	// 			author {
-	// 				Name
-	// 				Tutorials
-	// 			}
-	// 		}
-	// 	}
-	// `
+	query := `
+		{
+			list {
+				id
+				title
+				comments{
+					body
+				}
+				author {
+					Name
+					Tutorials
+				}
+			}
+		}
+	`
 
 	// query against our tutorial schema:
-	query1 := `
-    {
+	/*query1 := `
+	{
         tutorial(id:2) {
             title
             author {
@@ -184,13 +213,23 @@ func main() {
 				body
 			}
         }
-    }
-`
+	}
+	`
+	*/
 
-	params := graphql.Params{Schema: schema, RequestString: query1}
+	// query to use the mutation
+	// query3 := `
+	// 	mutation {
+	// 		create(title: "Hello world") {
+	// 			title
+	// 		}
+	// 	}
+	// `
+
+	params := graphql.Params{Schema: schema, RequestString: query}
 	r := graphql.Do(params)
 	if len(r.Errors) > 0 {
-		log.Fatalf("faliked to execute graphql operations, errors: %+v", r.Errors)
+		log.Fatalf("failed to execute graphql operations, errors: %+v", r.Errors)
 	}
 	rJSON, _ := json.Marshal(r)
 	fmt.Printf("%s \n", rJSON)

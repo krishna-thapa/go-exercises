@@ -15,3 +15,6 @@ GraphQL essentially allows us to cut down the noise and describe the data that w
 This is actually really cool. We can stand up a GraphQL server that interacts with existing services and then build around this new GraphQL server instead of having to worry about modifying existing REST APIs.
 
 Simple GraphQL server in Go: https://github.com/graphql-go/graphql
+
+## Mutations
+Mutations in GraphQL allow us to not only fetch data from our GraphQL API, but to also update it. This ability to modify our data makes GraphQL a far more complete data platform that could entirely replace REST as opposed to just complement it.
