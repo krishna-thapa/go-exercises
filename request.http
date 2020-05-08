@@ -1,0 +1,51 @@
+// Like a Postman, you can directly run any HTTP methods
+// First install plugin in Visual studio code
+GET http://localhost:8000/api/books
+
+###
+GET http://localhost:8000/api/book/1
+
+###
+POST http://localhost:8000/api/books
+Content-Type: application/json
+
+{
+    "isbn" : "6789",
+    "title": "Book four",
+    "author": {
+        "firstname": "Kiran",
+        "lastname": "Thapa"
+    }
+}
+
+// Remeber to insert extra line between header and body parts
+
+###
+DELETE http://localhost:8000/api/book/1
+
+###
+PUT http://localhost:8000/api/book/2
+
+{
+    "isbn" : "6789",
+    "title": "Book four",
+    "author": {
+        "firstname": "Kiran",
+        "lastname": "Thapa"
+    }
+}
+
+###
+GET http://localhost:8080/ping
+
+###
+GET http://localhost:8080/newsfeed
+
+###
+POST http://localhost:8080/newsfeed
+Content-Type: application/json
+
+{
+    "title" : "Hello",
+    "post": "I am here"
+}
