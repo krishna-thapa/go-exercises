@@ -122,7 +122,7 @@ var mutationType = graphql.NewObject(graphql.ObjectConfig{
 				},
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				//koverflow.com/questions/44027826/convert-interface-to-string-in-golang
+				//overflow.com/questions/44027826/convert-interface-to-string-in-golang
 				tags := p.Args["tags"].([]interface{})
 				fmt.Println("Type of tags: ",reflect.TypeOf(tags))
 				stringTags := make([]string, len(tags))
@@ -142,8 +142,81 @@ var mutationType = graphql.NewObject(graphql.ObjectConfig{
 				return quote, nil
 			},
 		},
+
+		"update": &graphql.Field{
+			Type: quoteType,
+			Description: "Update quote by id",
+			Args: graphql.FieldConfigArgument{
+				"id": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.Int),
+				},
+				"quote": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+				"author": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+				"tags": &graphql.ArgumentConfig{
+					Type: graphql.NewList(graphql.String),
+				},
+				"date": &graphql.ArgumentConfig{
+					Type: graphql.DateTime,
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				id, _ := p.Args["id"].(int)
+				quote, quoteOk := p.Args["quote"].(string)
+				author, authorOk := p.Args["author"].(string)
+				tags, tagsOk := p.Args["tags"].([] string)
+				date, dateOk := p.Args["date"].(string)
+				quoteRecord := Quote{}
+				dateFormatted := convertStrToTime(date)
+				for i, q := range quotes {
+					if int64(id) == q.ID {
+						if quoteOk {
+							quotes[i].Quote = quote
+						}
+						if authorOk {
+							quotes[i].Author = author
+						}
+						if tagsOk {
+							quotes[i].Tags = tags
+						}
+						if dateOk {
+							quotes[i].Date = dateFormatted
+						}
+						quoteRecord = quotes[i]
+						break
+					}
+				}
+				return quoteRecord, nil
+			},
+		},
+
+		"delete": &graphql.Field{
+			Type: quoteType,
+			Description: "Delete quote by id",
+			Args: graphql.FieldConfigArgument{
+				"id": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.Int),
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				id, _ := p.Args["id"].(int)
+				quote := Quote{}
+				for i, q := range quotes {
+					if int64(id) == q.ID {
+						quote = quotes[i]
+						// Remove from quotes list
+						quotes = append(quotes[:i], quotes[i+1:]...)
+					}
+				}
+				return quote, nil
+			},
+		},
 	},
 })
+
 var schema, _ = graphql.NewSchema(
 	graphql.SchemaConfig{
 		Query:    queryType,
@@ -161,6 +234,15 @@ func executeQuery(query string, schema graphql.Schema) *graphql.Result {
 		fmt.Printf("errors: %v", result.Errors)
 	}
 	return result
+}
+
+func convertStrToTime(timeStr string) time.Time {
+	layout := "2006-01-02T15:04:05.000Z"
+	t, err := time.Parse(layout, timeStr)
+	if err !=  nil {
+		fmt.Println(err)
+	}
+	return t
 }
 
 func main() {

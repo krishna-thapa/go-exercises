@@ -1,6 +1,6 @@
 // READ
 // Get quote lists
-GET http://localhost:8080/quote?query={list{quote,author,tags}}
+GET http://localhost:8080/quote?query={list{quote,author,tags,date}}
 
 ###
 // Get a sinle quote by id, you can choose fields you want in return
@@ -9,3 +9,11 @@ GET http://localhost:8080/quote?query={quote(id:1){quote,author,tags}}
 ###
 // Create a new Quote 
 GET http://localhost:8080/quote?query=mutation+_{create(quote:"Its a nice day",author:"John Hill",tags:["peace","gh"]){id,quote,author,tags,date}}
+
+###
+// Update a Quote with given id
+GET http://localhost:8080/quote?query=mutation+_{update(id:1,quote:"Its a nice day",author:"Demo Hill"){id,quote,author,tags,date}}
+
+###
+// Delete a Quote with given id
+GET http://localhost:8080/quote?query=mutation+_{delete(id:1){id,quote,author,tags,date}}
