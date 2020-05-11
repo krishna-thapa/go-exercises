@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -10,8 +11,7 @@ import (
 
 	"github.com/graphql-go/graphql"
 )
-
-// class for one quote
+// Quote contains information about one quote
 type Quote struct {
 	ID     int64     `json:"id"`
 	Quote  string    `json:"quote"`
@@ -22,7 +22,7 @@ type Quote struct {
 
 // https://www.sohamkamani.com/golang/2018-07-19-golang-omitempty/
 
-var quotes = []Quote{
+/*var quotes = []Quote{
 	{
 		ID:     1,
 		Quote:  "Hello world",
@@ -33,7 +33,9 @@ var quotes = []Quote{
 		},
 		Date: time.Now(), //change to default date
 	},
-}
+}*/
+
+var quotes []Quote
 
 var quoteType = graphql.NewObject(
 	graphql.ObjectConfig{
@@ -246,6 +248,7 @@ func convertStrToTime(timeStr string) time.Time {
 }
 
 func main() {
+	_ = importJSONgo("data.json")
 	http.HandleFunc("/quote", func(w http.ResponseWriter, r *http.Request) {
 		result := executeQuery(r.URL.Query().Get("query"), schema)
 		json.NewEncoder(w).Encode(result)
@@ -253,4 +256,27 @@ func main() {
 
 	fmt.Println("Server is up and running on port 8080")
 	http.ListenAndServe(":8080", nil)
+}
+
+// Helper function to import JSON from file to map
+func importJSONgo(fileName string) (isOK bool) {
+	isOK = true
+	var f map[string]Quote
+	content, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		fmt.Println("Error on reading file: ", err)
+		isOK = false
+		
+	}
+	err = json.Unmarshal(content, &f)
+	if err != nil {
+		isOK = false
+		fmt.Println("Error on parsing: ", err)
+	}
+
+	// Convert interface map to list of quote
+	for _, value := range f {
+		quotes = append(quotes, value)
+	}
+	return
 }
